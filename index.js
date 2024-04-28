@@ -75,8 +75,6 @@ contentArray = contentArray.filter((section) => {
   return section.content.length;
 });
 
-console.log("contentArray", contentArray);
-
 let markdownContent = "";
 contentArray.forEach((section) => {
   markdownContent += `## ${section.title}\n\n`;
