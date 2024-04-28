@@ -15,7 +15,6 @@ const mdFilePath = process.argv[3];
 const html = fs.readFileSync(htmlFilePath, "utf-8");
 
 const $ = cheerio.load(html);
-let markdownContent = "";
 let contentArray = [];
 
 // Process each line of HTML
@@ -31,6 +30,7 @@ function parseElement(element) {
       parseElement(child);
     });
   }
+
   if (element.type === "tag") {
     // Handle tag nodes
     if ($(element).hasClass("sectionHeading")) {
@@ -40,17 +40,6 @@ function parseElement(element) {
         title: sectionHeading,
         content: [],
       });
-      // // check next element, if noteHeading and noteText, then add to markdownContent
-      // const nextElement = $(element).next();
-      // const nextNextElement = nextElement.next();
-      // if (
-      //   $(nextElement).hasClass("noteHeading") &&
-      //   $(nextNextElement).hasClass("noteText")
-      // ) {
-      //   markdownContent += sectionHeading;
-      //   markdownContent += parseNoteHeadingNode(nextElement);
-      //   markdownContent += parseNoteTextNode(nextNextElement);
-      // }
     } else {
       // get last element in contentArray
       const lastSectionHeading = contentArray[contentArray.length - 1];
@@ -88,7 +77,7 @@ contentArray = contentArray.filter((section) => {
 
 console.log("contentArray", contentArray);
 
-// generate markdown content
+let markdownContent = "";
 contentArray.forEach((section) => {
   markdownContent += `## ${section.title}\n\n`;
   section.content.forEach((note) => {
@@ -101,26 +90,3 @@ contentArray.forEach((section) => {
 fs.writeFileSync(mdFilePath, markdownContent);
 
 console.log(`Markdown file '${mdFilePath}' has been created successfully.`);
-
-function parseNoteHeadingNode(node) {
-  const noteHeading = $(node).text().trim();
-  if (!noteHeading.startsWith("Bookmark")) {
-    const page = noteHeading.split("-")[1].trim();
-    return `**${page}**\n`;
-  }
-
-  return "";
-  // delete previous lines
-  const previousLines = markdownContent.split("\n");
-  console.debug("previousLines", previousLines);
-  const previousLinesCount = 3;
-  const lines = previousLines.slice(0, -previousLinesCount);
-  console.debug("lines", lines);
-  markdownContent = lines.join("\n");
-  console.debug("markdownContent", markdownContent);
-}
-
-function parseNoteTextNode(node) {
-  const noteText = $(node).text().trim();
-  return noteText ? `> ${noteText}\n\n` : "";
-}
